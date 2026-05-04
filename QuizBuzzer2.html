@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Buzzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+
+        @keyframes pulse {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(1.4); }
+            100% { filter: brightness(1); }
+        }
+
+        .pulsate {
+            animation: pulse 0.8s ease-in-out infinite;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #top {
+            flex: 1;
+            background-color: #003DA5;
+            filter: brightness(0.6);
+        }
+
+        #bottom {
+            flex: 1;
+            background-color: #8B0015;
+            filter: brightness(0.6);
+        }
+
+        #reset {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 36px 60px;
+            font-size: 26px;
+            border: none;
+            border-radius: 100px;
+            background: white;
+            cursor: pointer;
+            display: none;
+        }
+
+        #host-toggle {
+            position: absolute;
+            top: calc(50% - 30px);
+            left: 0;
+            transform: translateY(-50%);
+            padding: 14px 16px;
+            font-size: 13px;
+            border: none;
+            border-radius: 0 20px 20px 0;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            cursor: pointer;
+        }
+
+        #activate {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            padding: 80px 28px;
+            font-size: 18px;
+            border: none;
+            border-radius: 20px 0 0 20px;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            cursor: pointer;
+            display: none;
+        }
+
+        #fullscreen {
+            position: absolute;
+            top: calc(50% + 30px);
+            left: 0;
+            transform: translateY(-50%);
+            padding: 14px 16px;
+            font-size: 20px;
+            border: none;
+            border-radius: 0 20px 20px 0;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="top"></div>
+    <div id="bottom"></div>
+    <button id="reset">Reset</button>
+    <button id="host-toggle">Host: OFF</button>
+    <button id="activate">Activate</button>
+    <button id="fullscreen">[ ]</button>
+
+</body>
+<script>
+    const topDiv = document.getElementById('top');
+    const bottomDiv = document.getElementById('bottom');
+    const resetBtn = document.getElementById('reset');
+    const hostToggle = document.getElementById('host-toggle');
+    const activateBtn = document.getElementById('activate');
+
+    let buzzed = false;
+    let hostMode = false;
+    let buzzersActive = true;
+
+    const fullscreenBtn = document.getElementById('fullscreen');
+
+    fullscreenBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        } else {
+            document.documentElement.requestFullscreen();
+        }
+    });
+
+    topDiv.addEventListener('pointerdown', function() {
+        if (buzzed || !buzzersActive) return;
+        console.log('topBuzzed event start, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+        buzzed = true;
+        winner(topDiv, bottomDiv);
+        console.log('topBuzzed event end, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+    });
+
+    bottomDiv.addEventListener('pointerdown', function() {
+        if (buzzed || !buzzersActive) return;
+        console.log('bottomBuzzed event start, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+        buzzed = true;
+        winner(bottomDiv, topDiv);
+        console.log('bottomBuzzed end, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+    });
+
+    resetBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        console.log('resetBtn event start, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+        buzzed = false;
+        resetBtn.style.display = 'none';
+
+        if (hostMode) {
+            lockBuzzers();
+        } else {
+            unlockBuzzers();
+        }
+        console.log('resetBtn event end, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+    });
+
+    hostToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        console.log('hostToggle event start, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+        hostMode = !hostMode;
+
+        if (hostMode) {
+            hostToggle.textContent = 'Host: ON';
+            lockBuzzers();
+        } else {
+            hostToggle.textContent = 'Host: OFF';
+            unlockBuzzers();
+            activateBtn.style.display = 'none';
+        }
+        console.log('hostToggle event end, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+    });
+
+    activateBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        console.log('actBtn event start, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+        unlockBuzzers();
+        activateBtn.style.display = 'none';
+        console.log('actBtn event end, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+    });
+
+    // function winner(winnerDiv, loserDiv) {
+    //     bling();
+    //     winnerDiv.style.filter = 'brightness(1)';
+    //     loserDiv.style.filter = 'brightness(0)';
+    //     setTimeout(function() {
+    //         resetBtn.style.display = 'block';
+    //     }, 3000);
+    // }
+
+    function winner(winnerDiv, loserDiv) {
+        winnerDiv.classList.add('pulsate');
+        loserDiv.style.filter = 'brightness(0)';
+        bling();
+        setTimeout(function() {
+            resetBtn.style.display = 'block';
+        }, 1500);
+    }
+
+    function lockBuzzers() {
+        console.log('lockBuzzers, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+        buzzersActive = false;
+        activateBtn.style.display = 'block';
+        topDiv.style.filter = 'brightness(0.3)';
+        bottomDiv.style.filter = 'brightness(0.3)';
+    }
+
+    function unlockBuzzers() {
+        console.log('unlockBuzzers, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+        buzzersActive = true;
+        topDiv.style.filter = 'brightness(0.6)';
+        bottomDiv.style.filter = 'brightness(0.6)';
+        topDiv.classList.remove('pulsate');
+        bottomDiv.classList.remove('pulsate');
+    }
+
+    function bling() {
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.frequency.setValueAtTime(500, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1500, ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.4, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.010, ctx.currentTime + 0.35);
+
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.35);
+    }
+</script>
+</html>
