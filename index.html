@@ -941,7 +941,8 @@
     }
 
     function timeOut(loserDiv, loserTimer) {
-        bling();
+        // bling();
+        chessBling();
         clearInterval(chessInterval);
         activateBtn.style.display = 'none';
         loserDiv.classList.add('pulsate');
@@ -998,13 +999,34 @@
         osc.connect(gain);
         gain.connect(audioCtx.destination);
 
-        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(500, audioCtx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.08);
         gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+        gain.gain.exponentialRampToValueAtTime(0.010, audioCtx.currentTime + 0.35);
 
         osc.start(audioCtx.currentTime);
         osc.stop(audioCtx.currentTime + 0.35);
+    }
+
+    function chessBling() {
+        function singleBling(delay) {
+            setTimeout(function() {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                osc.start(audioCtx.currentTime);
+                osc.stop(audioCtx.currentTime + 0.2);
+            }, delay);
+        }
+
+        singleBling(0);
+        singleBling(150);
+        singleBling(300);
     }
 </script>
 </html>
