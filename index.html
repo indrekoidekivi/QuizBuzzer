@@ -735,6 +735,12 @@
     });
 
     function startChessMode() {
+        playerToggle.style.display = 'none';
+        if (playerCount === 4) {
+            playerCount = 2;
+            playerToggle.textContent = '2P';
+            switchToTwoPlayers();
+        }
         activateBtn.textContent = 'Toggle';
         hostToggle.style.display = 'none';
         settingsBtn.style.display = 'block';
@@ -766,6 +772,7 @@
 
     function startBuzzMode() {
         clearInterval(chessInterval);
+        playerToggle.style.display = 'block';
         activateBtn.textContent = 'Activate';
         hostToggle.style.display = 'block';
         settingsBtn.style.display = 'none';
