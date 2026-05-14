@@ -162,6 +162,21 @@
             cursor: pointer;
         }
 
+        #settings {
+            position: absolute;
+            top: calc(50% - 70px);
+            left: 0;
+            transform: translateY(-50%);
+            padding: 14px 16px;
+            font-size: 13px;
+            border: none;
+            border-radius: 0 20px 20px 0;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            cursor: pointer;
+            display: none;
+        }
+
         #mode-toggle {
             position: absolute;
             top: 50%;
@@ -189,6 +204,134 @@
             color: white;
             cursor: pointer;
         }
+
+        #score-toggle {
+            position: absolute;
+            top: calc(50% + 150px);
+            left: 0;
+            transform: translateY(-50%);
+            padding: 14px 16px;
+            font-size: 13px;
+            border: none;
+            border-radius: 0 20px 20px 0;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            cursor: pointer;
+        }
+
+        #blue-score-control {
+            position: absolute;
+            top: 15%;
+            right: 10px;
+            transform: translateY(-50%) rotate(-90deg);
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #red-score-control {
+            position: absolute;
+            top: 85%;
+            right: 10px;
+            transform: translateY(-50%) rotate(-90deg);
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #blue-score, #red-score {
+            font-size: 72px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .score-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #settings-screen {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            z-index: 1000;
+        }
+
+        #settings-screen h2 {
+            color: white;
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .setting {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .setting label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+        }
+
+        #time-input {
+            font-size: 48px;
+            width: 160px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            color: white;
+            padding: 10px;
+        }
+
+        #player-picker {
+            display: flex;
+            gap: 12px;
+        }
+
+        .pick-btn {
+            padding: 14px 32px;
+            font-size: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            cursor: pointer;
+        }
+
+        .pick-btn.active {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        #settings-close {
+            padding: 16px 48px;
+            font-size: 18px;
+            border: none;
+            border-radius: 100px;
+            background: white;
+            color: black;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -200,9 +343,42 @@
     </div>
     <button id="reset">Reset</button>
     <button id="host-toggle">Host: OFF</button>
+    <button id="settings">Settings</button>
     <button id="mode-toggle">Buzz</button>
     <button id="activate">Activate</button>
     <button id="fullscreen">[ ]</button>
+    <button id="score-toggle">Score: ON</button>
+
+    <div id="blue-score-control">
+        <button class="score-btn" id="blue-minus">-</button>
+        <span id="blue-score">0</span>
+        <button class="score-btn" id="blue-plus">+</button>
+    </div>
+
+    <div id="red-score-control">
+        <button class="score-btn" id="red-minus">-</button>
+        <span id="red-score">0</span>
+        <button class="score-btn" id="red-plus">+</button>
+    </div>
+
+    <div id="settings-screen">
+        <h2>Chess Clock Settings</h2>
+
+        <div class="setting">
+            <label>Time (seconds)</label>
+            <input type="number" id="time-input" value="30" min="5" max="600">
+        </div>
+
+        <div class="setting">
+            <label>Starting player</label>
+            <div id="player-picker">
+                <button id="pick-top" class="pick-btn active">Blue</button>
+                <button id="pick-bottom" class="pick-btn">Red</button>
+            </div>
+        </div>
+
+        <button id="settings-close">Done</button>
+    </div>
 
 </body>
 <script>
@@ -211,14 +387,14 @@
     const resetBtn = document.getElementById('reset');
     const hostToggle = document.getElementById('host-toggle');
     const activateBtn = document.getElementById('activate');
+    const fullscreenBtn = document.getElementById('fullscreen');
+    const settingsBtn = document.getElementById('settings');
+    const modeToggle = document.getElementById('mode-toggle');
 
     let buzzed = false;
     let hostMode = false;
     let buzzersActive = true;
 
-    const fullscreenBtn = document.getElementById('fullscreen');
-
-    const modeToggle = document.getElementById('mode-toggle');
     let mode = 'buzz';
 
     let topTime = 30;
@@ -230,6 +406,106 @@
     const bottomTimer = document.getElementById('bottom-timer');
 
     const audioCtx = new AudioContext();
+
+    // Score counters
+    const blueScore = document.getElementById('blue-score');
+    const redScore = document.getElementById('red-score');
+
+    let bluePoints = 0;
+    let redPoints = 0;
+
+    const scoreToggle = document.getElementById('score-toggle');
+    const blueScoreControl = document.getElementById('blue-score-control');
+    const redScoreControl = document.getElementById('red-score-control');
+
+    let scoreVisible = true;
+
+    scoreToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        scoreVisible = !scoreVisible;
+        if (scoreVisible) {
+            scoreToggle.textContent = 'Score: ON';
+            blueScoreControl.style.display = 'flex';
+            redScoreControl.style.display = 'flex';
+        } else {
+            scoreToggle.textContent = 'Score: OFF';
+            blueScoreControl.style.display = 'none';
+            redScoreControl.style.display = 'none';
+        }
+    });
+
+    document.getElementById('blue-plus').addEventListener('click', function(e) {
+        e.stopPropagation();
+        bluePoints++;
+        blueScore.textContent = bluePoints;
+    });
+
+    document.getElementById('blue-minus').addEventListener('click', function(e) {
+        e.stopPropagation();
+        bluePoints--;
+        blueScore.textContent = bluePoints;
+    });
+
+    document.getElementById('red-minus').addEventListener('click', function(e) {
+        e.stopPropagation();
+        redPoints--;
+        redScore.textContent = redPoints;
+    });
+
+    document.getElementById('red-plus').addEventListener('click', function(e) {
+        e.stopPropagation();
+        redPoints++;
+        redScore.textContent = redPoints;
+    });
+
+    // Settings screen
+    const settingsScreen = document.getElementById('settings-screen');
+    const timeInput = document.getElementById('time-input');
+    const pickTop = document.getElementById('pick-top');
+    const pickBottom = document.getElementById('pick-bottom');
+    const settingsClose = document.getElementById('settings-close');
+
+    let startingPlayer = 'top';
+
+    settingsBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        clearInterval(chessInterval);
+        activePlayer = null;
+        topTime = parseInt(timeInput.value);
+        bottomTime = parseInt(timeInput.value);
+        topTimer.textContent = topTime;
+        bottomTimer.textContent = bottomTime;
+        topDiv.style.filter = 'brightness(0.6)';
+        bottomDiv.style.filter = 'brightness(0.6)';
+        topDiv.classList.remove('pulsate');
+        bottomDiv.classList.remove('pulsate');
+        resetBtn.style.display = 'none';
+        activateBtn.style.display = 'block';
+        settingsScreen.style.display = 'flex';
+    });
+
+    settingsClose.addEventListener('click', function(e) {
+        e.stopPropagation();
+        settingsScreen.style.display = 'none';
+        topTime = parseInt(timeInput.value);
+        bottomTime = parseInt(timeInput.value);
+        topTimer.textContent = topTime;
+        bottomTimer.textContent = bottomTime;
+    });
+
+    pickTop.addEventListener('click', function(e) {
+        e.stopPropagation();
+        startingPlayer = 'top';
+        pickTop.classList.add('active');
+        pickBottom.classList.remove('active');
+    });
+
+    pickBottom.addEventListener('click', function(e) {
+        e.stopPropagation();
+        startingPlayer = 'bottom';
+        pickBottom.classList.add('active');
+        pickTop.classList.remove('active');
+    });
 
     modeToggle.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -247,6 +523,7 @@
     function startChessMode() {
         activateBtn.textContent = 'Toggle';
         hostToggle.style.display = 'none';
+        settingsBtn.style.display = 'block';
         topTime = 30;
         bottomTime = 30;
         activePlayer = null;
@@ -276,6 +553,8 @@
     function startBuzzMode() {
         clearInterval(chessInterval);
         activateBtn.textContent = 'Activate';
+        hostToggle.style.display = 'block';
+        settingsBtn.style.display = 'none';
         activePlayer = null;
         topTimer.style.display = 'none';
         bottomTimer.style.display = 'none';
@@ -283,7 +562,11 @@
         bottomDiv.style.filter = 'brightness(0.6)';
         topDiv.classList.remove('pulsate');
         bottomDiv.classList.remove('pulsate');
-        activateBtn.style.display = 'none';
+        if (hostMode) {
+            activateBtn.style.display = 'block';
+        } else {
+            activateBtn.style.display = 'none';
+        }
         hostToggle.style.display = 'block';
         resetBtn.style.display = 'none';
         buzzed = false;
@@ -334,11 +617,11 @@
         e.stopPropagation();
         if (mode === 'chess') {
             clearInterval(chessInterval);
-            topTime = 30;
-            bottomTime = 30;
+            topTime = parseInt(timeInput.value);
+            bottomTime = parseInt(timeInput.value);
             activePlayer = null;
-            topTimer.textContent = 30;
-            bottomTimer.textContent = 30;
+            topTimer.textContent = topTime;
+            bottomTimer.textContent = bottomTime;
             topDiv.style.filter = 'brightness(0.6)';
             bottomDiv.style.filter = 'brightness(0.6)';
             topDiv.classList.remove('pulsate');
@@ -395,12 +678,18 @@
     function switchChessPlayer() {
         clearInterval(chessInterval);
 
-        if (activePlayer === null || activePlayer === 'bottom') {
+        if (activePlayer === null) {
+            activePlayer = startingPlayer;
+        } else if (activePlayer === 'top') {
+            activePlayer = 'bottom';
+        } else {
             activePlayer = 'top';
+        }
+
+        if (activePlayer === 'top') {
             topDiv.style.filter = 'brightness(1)';
             bottomDiv.style.filter = 'brightness(0.3)';
         } else {
-            activePlayer = 'bottom';
             bottomDiv.style.filter = 'brightness(1)';
             topDiv.style.filter = 'brightness(0.3)';
         }
