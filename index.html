@@ -32,16 +32,49 @@
             height: 100vh;
         }
 
+        /*#top {*/
+        /*    flex: 1;*/
+        /*    background-color: #003DA5;*/
+        /*    filter: brightness(0.6);*/
+        /*}*/
+
+        /*#bottom {*/
+        /*    flex: 1;*/
+        /*    background-color: #8B0015;*/
+        /*    filter: brightness(0.6);*/
+        /*}*/
+
         #top {
             flex: 1;
             background-color: #003DA5;
             filter: brightness(0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         #bottom {
             flex: 1;
             background-color: #8B0015;
             filter: brightness(0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #top-timer {
+            font-size: 120px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+            transform: rotate(180deg);
+            display: none;
+        }
+
+        #bottom-timer {
+            font-size: 120px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+            display: none;
         }
 
         #reset {
@@ -58,9 +91,66 @@
             display: none;
         }
 
+        /*#host-toggle {*/
+        /*    position: absolute;*/
+        /*    top: calc(50% - 30px);*/
+        /*    left: 0;*/
+        /*    transform: translateY(-50%);*/
+        /*    padding: 14px 16px;*/
+        /*    font-size: 13px;*/
+        /*    border: none;*/
+        /*    border-radius: 0 20px 20px 0;*/
+        /*    background: rgba(255, 255, 255, 0.3);*/
+        /*    color: white;*/
+        /*    cursor: pointer;*/
+        /*}*/
+
+        #activate {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            padding: 120px 28px;
+            font-size: 20px;
+            border: none;
+            border-radius: 20px 0 0 20px;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            cursor: pointer;
+            display: none;
+        }
+
+        /*#fullscreen {*/
+        /*    position: absolute;*/
+        /*    top: calc(50% + 30px);*/
+        /*    left: 0;*/
+        /*    transform: translateY(-50%);*/
+        /*    padding: 14px 16px;*/
+        /*    font-size: 20px;*/
+        /*    border: none;*/
+        /*    border-radius: 0 20px 20px 0;*/
+        /*    background: rgba(255, 255, 255, 0.3);*/
+        /*    color: white;*/
+        /*    cursor: pointer;*/
+        /*}*/
+
+        /*#mode-toggle {*/
+        /*    position: absolute;*/
+        /*    top: calc(50% - 40px);*/
+        /*    left: 0;*/
+        /*    transform: translateY(30px);*/
+        /*    padding: 14px 16px;*/
+        /*    font-size: 13px;*/
+        /*    border: none;*/
+        /*    border-radius: 0 20px 20px 0;*/
+        /*    background: rgba(255, 255, 255, 0.3);*/
+        /*    color: white;*/
+        /*    cursor: pointer;*/
+        /*}*/
+
         #host-toggle {
             position: absolute;
-            top: calc(50% - 30px);
+            top: calc(50% - 70px);
             left: 0;
             transform: translateY(-50%);
             padding: 14px 16px;
@@ -72,24 +162,23 @@
             cursor: pointer;
         }
 
-        #activate {
+        #mode-toggle {
             position: absolute;
             top: 50%;
-            right: 0;
+            left: 0;
             transform: translateY(-50%);
-            padding: 80px 28px;
-            font-size: 18px;
+            padding: 14px 16px;
+            font-size: 13px;
             border: none;
-            border-radius: 20px 0 0 20px;
+            border-radius: 0 20px 20px 0;
             background: rgba(255, 255, 255, 0.3);
             color: white;
             cursor: pointer;
-            display: none;
         }
 
         #fullscreen {
             position: absolute;
-            top: calc(50% + 30px);
+            top: calc(50% + 70px);
             left: 0;
             transform: translateY(-50%);
             padding: 14px 16px;
@@ -103,10 +192,15 @@
     </style>
 </head>
 <body>
-    <div id="top"></div>
-    <div id="bottom"></div>
+    <div id="top">
+        <span id="top-timer">30</span>
+    </div>
+    <div id="bottom">
+        <span id="bottom-timer">30</span>
+    </div>
     <button id="reset">Reset</button>
     <button id="host-toggle">Host: OFF</button>
+    <button id="mode-toggle">Buzz</button>
     <button id="activate">Activate</button>
     <button id="fullscreen">[ ]</button>
 
@@ -124,6 +218,77 @@
 
     const fullscreenBtn = document.getElementById('fullscreen');
 
+    const modeToggle = document.getElementById('mode-toggle');
+    let mode = 'buzz';
+
+    let topTime = 30;
+    let bottomTime = 30;
+    let activePlayer = null;
+    let chessInterval = null;
+
+    const topTimer = document.getElementById('top-timer');
+    const bottomTimer = document.getElementById('bottom-timer');
+
+    const audioCtx = new AudioContext();
+
+    modeToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (mode === 'buzz') {
+            mode = 'chess';
+            modeToggle.textContent = 'Clock';
+            startChessMode();
+        } else {
+            mode = 'buzz';
+            modeToggle.textContent = 'Buzz';
+            startBuzzMode();
+        }
+    });
+
+    function startChessMode() {
+        activateBtn.textContent = 'Toggle';
+        hostToggle.style.display = 'none';
+        topTime = 30;
+        bottomTime = 30;
+        activePlayer = null;
+        topTimer.style.display = 'block';
+        bottomTimer.style.display = 'block';
+        topTimer.textContent = 30;
+        bottomTimer.textContent = 30;
+        topDiv.style.filter = 'brightness(0.6)';
+        bottomDiv.style.filter = 'brightness(0.6)';
+        topDiv.classList.remove('pulsate');
+        bottomDiv.classList.remove('pulsate');
+        activateBtn.style.display = 'block';
+        resetBtn.style.display = 'none';
+    }
+
+    // function startBuzzMode() {
+    //     clearInterval(chessInterval);
+    //     hostToggle.style.display = 'block';
+    //     activePlayer = null;
+    //     topTimer.style.display = 'none';
+    //     bottomTimer.style.display = 'none';
+    //     topDiv.style.filter = 'brightness(0.6)';
+    //     bottomDiv.style.filter = 'brightness(0.6)';
+    //     activateBtn.style.display = 'none';
+    // }
+
+    function startBuzzMode() {
+        clearInterval(chessInterval);
+        activateBtn.textContent = 'Activate';
+        activePlayer = null;
+        topTimer.style.display = 'none';
+        bottomTimer.style.display = 'none';
+        topDiv.style.filter = 'brightness(0.6)';
+        bottomDiv.style.filter = 'brightness(0.6)';
+        topDiv.classList.remove('pulsate');
+        bottomDiv.classList.remove('pulsate');
+        activateBtn.style.display = 'none';
+        hostToggle.style.display = 'block';
+        resetBtn.style.display = 'none';
+        buzzed = false;
+    }
+
     fullscreenBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         if (document.fullscreenElement) {
@@ -134,6 +299,7 @@
     });
 
     topDiv.addEventListener('pointerdown', function() {
+        if (mode === 'chess') return;
         if (buzzed || !buzzersActive) return;
         console.log('topBuzzed event start, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
         buzzed = true;
@@ -142,6 +308,7 @@
     });
 
     bottomDiv.addEventListener('pointerdown', function() {
+        if (mode === 'chess') return;
         if (buzzed || !buzzersActive) return;
         console.log('bottomBuzzed event start, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
         buzzed = true;
@@ -149,18 +316,46 @@
         console.log('bottomBuzzed end, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
     });
 
+    // resetBtn.addEventListener('click', function(e) {
+    //     e.stopPropagation();
+    //     console.log('resetBtn event start, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+    //     buzzed = false;
+    //     resetBtn.style.display = 'none';
+    //
+    //     if (hostMode) {
+    //         lockBuzzers();
+    //     } else {
+    //         unlockBuzzers();
+    //     }
+    //     console.log('resetBtn event end, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+    // });
+
     resetBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        console.log('resetBtn event start, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
-        buzzed = false;
-        resetBtn.style.display = 'none';
-
-        if (hostMode) {
-            lockBuzzers();
+        if (mode === 'chess') {
+            clearInterval(chessInterval);
+            topTime = 30;
+            bottomTime = 30;
+            activePlayer = null;
+            topTimer.textContent = 30;
+            bottomTimer.textContent = 30;
+            topDiv.style.filter = 'brightness(0.6)';
+            bottomDiv.style.filter = 'brightness(0.6)';
+            topDiv.classList.remove('pulsate');
+            bottomDiv.classList.remove('pulsate');
+            resetBtn.style.display = 'none';
+            activateBtn.style.display = 'block';
         } else {
-            unlockBuzzers();
+            buzzed = false;
+            resetBtn.style.display = 'none';
+            topDiv.classList.remove('pulsate');
+            bottomDiv.classList.remove('pulsate');
+            if (hostMode) {
+                lockBuzzers();
+            } else {
+                unlockBuzzers();
+            }
         }
-        console.log('resetBtn event end, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
     });
 
     hostToggle.addEventListener('click', function(e) {
@@ -179,13 +374,63 @@
         console.log('hostToggle event end, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
     });
 
+    // activateBtn.addEventListener('click', function(e) {
+    //     e.stopPropagation();
+    //     console.log('actBtn event start, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+    //     unlockBuzzers();
+    //     activateBtn.style.display = 'none';
+    //     console.log('actBtn event end, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+    // });
+
     activateBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        console.log('actBtn event start, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
-        unlockBuzzers();
-        activateBtn.style.display = 'none';
-        console.log('actBtn event end, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+        if (mode === 'buzz') {
+            unlockBuzzers();
+            activateBtn.style.display = 'none';
+        } else {
+            switchChessPlayer();
+        }
     });
+
+    function switchChessPlayer() {
+        clearInterval(chessInterval);
+
+        if (activePlayer === null || activePlayer === 'bottom') {
+            activePlayer = 'top';
+            topDiv.style.filter = 'brightness(1)';
+            bottomDiv.style.filter = 'brightness(0.3)';
+        } else {
+            activePlayer = 'bottom';
+            bottomDiv.style.filter = 'brightness(1)';
+            topDiv.style.filter = 'brightness(0.3)';
+        }
+
+        chessInterval = setInterval(function() {
+            if (activePlayer === 'top') {
+                topTime--;
+                topTimer.textContent = topTime;
+                if (topTime <= 0) {
+                    timeOut(topDiv, topTimer);
+                }
+            } else {
+                bottomTime--;
+                bottomTimer.textContent = bottomTime;
+                if (bottomTime <= 0) {
+                    timeOut(bottomDiv, bottomTimer);
+                }
+            }
+        }, 1000);
+    }
+
+    function timeOut(loserDiv, loserTimer) {
+        bling();
+        clearInterval(chessInterval);
+        activateBtn.style.display = 'none';
+        loserDiv.classList.add('pulsate');
+        setTimeout(function() {
+            resetBtn.style.display = 'block';
+        }, 3000);
+    }
 
     // function winner(winnerDiv, loserDiv) {
     //     bling();
@@ -202,7 +447,7 @@
         bling();
         setTimeout(function() {
             resetBtn.style.display = 'block';
-        }, 1500);
+        }, 3000);
     }
 
     function lockBuzzers() {
@@ -223,20 +468,19 @@
     }
 
     function bling() {
-        const ctx = new AudioContext();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
 
         osc.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(audioCtx.destination);
 
-        osc.frequency.setValueAtTime(500, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(1500, ctx.currentTime + 0.08);
-        gain.gain.setValueAtTime(0.4, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.010, ctx.currentTime + 0.35);
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
 
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.35);
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + 0.35);
     }
 </script>
 </html>
