@@ -61,11 +61,11 @@
             grid-row: 1;
         }
 
-        #bottom-left {
+        #bottom-right {
             background-color: #6b4a1a;
             filter: brightness(0.6);
             display: none;
-            grid-column: 1;
+            grid-column: 2;
             grid-row: 2;
         }
 
@@ -240,12 +240,39 @@
             cursor: pointer;
         }
 
+        #blue-score, #red-score {
+            font-size: 72px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            min-width: 70px;
+            text-align: center;
+        }
+
+        #green-score, #yellow-score {
+            font-size: 72px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            min-width: 70px;
+            text-align: center;
+        }
+
         #blue-score-control {
             position: absolute;
             top: 15%;
             right: 10px;
             transform: translateY(-50%) rotate(-90deg);
             display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #green-score-control {
+            position: absolute;
+            top: 25%;
+            left: 10px;
+            transform: translateY(-50%) rotate(-90deg);
+            display: none;
             flex-direction: row;
             align-items: center;
             gap: 10px;
@@ -262,42 +289,15 @@
             gap: 10px;
         }
 
-        #blue-score, #red-score {
-            font-size: 72px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.9);
-            min-width: 70px;
-            text-align: center;
-        }
-
-        #green-score-control {
-            position: absolute;
-            top: 15%;
-            left: 10px;
-            transform: translateY(-50%) rotate(90deg);
-            display: none;
-            flex-direction: row;
-            align-items: center;
-            gap: 10px;
-        }
-
         #yellow-score-control {
             position: absolute;
-            top: 85%;
+            top: 75%;
             left: 10px;
-            transform: translateY(-50%) rotate(90deg);
+            transform: translateY(-50%) rotate(-90deg);
             display: none;
             flex-direction: row;
             align-items: center;
             gap: 10px;
-        }
-
-        #green-score, #yellow-score {
-            font-size: 72px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.9);
-            min-width: 70px;
-            text-align: center;
         }
 
         .score-btn {
@@ -395,7 +395,7 @@
         <span id="bottom-timer">30</span>
     </div>
     <div id="top-right"></div>
-    <div id="bottom-left"></div>
+    <div id="bottom-right"></div>
     <button id="reset">Reset</button>
     <button id="host-toggle">Host: OFF</button>
     <button id="player-toggle">2P</button>
@@ -480,7 +480,7 @@
     let playerCount = 2;
 
     const topRight = document.getElementById('top-right');
-    const bottomLeft = document.getElementById('bottom-left');
+    const bottomLeft = document.getElementById('bottom-right');
 
     playerToggle.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -497,6 +497,16 @@
 
     function switchToFourPlayers() {
         buzzed = false;
+        blueScoreControl.style.transform = 'translateY(-50%) rotate(90deg)';
+        redScoreControl.style.transform = 'translateY(-50%) rotate(90deg)';
+        blueScoreControl.style.top = 'calc(50% - 120px)';
+        blueScoreControl.style.right = 'calc(50% + 10px)';
+        redScoreControl.style.top = 'calc(50% + 120px)';
+        redScoreControl.style.right = 'calc(50% + 10px)';
+        greenScoreControl.style.top = 'calc(50% - 120px)';
+        greenScoreControl.style.left = 'calc(50% + 10px)';
+        yellowScoreControl.style.top = 'calc(50% + 120px)';
+        yellowScoreControl.style.left = 'calc(50% + 10px)';
         greenScoreControl.style.display = scoreVisible ? 'flex' : 'none';
         yellowScoreControl.style.display = scoreVisible ? 'flex' : 'none';
         document.body.style.gridTemplateColumns = '1fr 1fr';
@@ -505,7 +515,7 @@
         bottomLeft.style.display = 'block';
         topDiv.style.gridColumn = '1';
         topDiv.style.gridRow = '1';
-        bottomDiv.style.gridColumn = '2';
+        bottomDiv.style.gridColumn = '1';
         bottomDiv.style.gridRow = '2';
         topRight.style.filter = 'brightness(0.6)';
         bottomLeft.style.filter = 'brightness(0.6)';
@@ -517,7 +527,16 @@
     }
 
     function switchToTwoPlayers() {
+        document.querySelectorAll('.score-btn').forEach(function(btn) {
+            btn.style.visibility = 'visible';
+        });
         buzzed = false;
+        blueScoreControl.style.transform = 'translateY(-50%) rotate(-90deg)';
+        redScoreControl.style.transform = 'translateY(-50%) rotate(-90deg)';
+        blueScoreControl.style.top = '15%';
+        blueScoreControl.style.right = '10px';
+        redScoreControl.style.top = '85%';
+        redScoreControl.style.right = '10px';
         greenScoreControl.style.display = 'none';
         yellowScoreControl.style.display = 'none';
         document.body.style.gridTemplateColumns = '1fr';
