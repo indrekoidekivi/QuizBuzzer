@@ -27,39 +27,46 @@
         }
 
         body {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr 1fr;
             height: 100vh;
         }
 
-        /*#top {*/
-        /*    flex: 1;*/
-        /*    background-color: #003DA5;*/
-        /*    filter: brightness(0.6);*/
-        /*}*/
-
-        /*#bottom {*/
-        /*    flex: 1;*/
-        /*    background-color: #8B0015;*/
-        /*    filter: brightness(0.6);*/
-        /*}*/
-
         #top {
-            flex: 1;
             background-color: #003DA5;
             filter: brightness(0.6);
             display: flex;
             align-items: center;
             justify-content: center;
+            grid-column: 1;
+            grid-row: 1;
         }
 
         #bottom {
-            flex: 1;
             background-color: #8B0015;
             filter: brightness(0.6);
             display: flex;
             align-items: center;
             justify-content: center;
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        #top-right {
+            background-color: #1a6b2a;
+            filter: brightness(0.6);
+            display: none;
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        #bottom-left {
+            background-color: #6b4a1a;
+            filter: brightness(0.6);
+            display: none;
+            grid-column: 1;
+            grid-row: 2;
         }
 
         #top-timer {
@@ -205,6 +212,20 @@
             cursor: pointer;
         }
 
+        #player-toggle {
+            position: absolute;
+            top: calc(50% - 150px);
+            left: 0;
+            transform: translateY(-50%);
+            padding: 14px 16px;
+            font-size: 13px;
+            border: none;
+            border-radius: 0 20px 20px 0;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            cursor: pointer;
+        }
+
         #score-toggle {
             position: absolute;
             top: calc(50% + 150px);
@@ -242,6 +263,36 @@
         }
 
         #blue-score, #red-score {
+            font-size: 72px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            min-width: 70px;
+            text-align: center;
+        }
+
+        #green-score-control {
+            position: absolute;
+            top: 15%;
+            left: 10px;
+            transform: translateY(-50%) rotate(90deg);
+            display: none;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #yellow-score-control {
+            position: absolute;
+            top: 85%;
+            left: 10px;
+            transform: translateY(-50%) rotate(90deg);
+            display: none;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #green-score, #yellow-score {
             font-size: 72px;
             font-weight: 500;
             color: rgba(255, 255, 255, 0.9);
@@ -343,8 +394,11 @@
     <div id="bottom">
         <span id="bottom-timer">30</span>
     </div>
+    <div id="top-right"></div>
+    <div id="bottom-left"></div>
     <button id="reset">Reset</button>
     <button id="host-toggle">Host: OFF</button>
+    <button id="player-toggle">2P</button>
     <button id="settings">Settings</button>
     <button id="mode-toggle">Buzz</button>
     <button id="activate">Activate</button>
@@ -361,6 +415,18 @@
         <button class="score-btn" id="red-minus">-</button>
         <span id="red-score">0</span>
         <button class="score-btn" id="red-plus">+</button>
+    </div>
+
+    <div id="green-score-control">
+        <button class="score-btn" id="green-minus">-</button>
+        <span id="green-score">0</span>
+        <button class="score-btn" id="green-plus">+</button>
+    </div>
+
+    <div id="yellow-score-control">
+        <button class="score-btn" id="yellow-minus">-</button>
+        <span id="yellow-score">0</span>
+        <button class="score-btn" id="yellow-plus">+</button>
     </div>
 
     <div id="settings-screen">
@@ -409,6 +475,95 @@
 
     const audioCtx = new AudioContext();
 
+    // 2P/4P toggle
+    const playerToggle = document.getElementById('player-toggle');
+    let playerCount = 2;
+
+    const topRight = document.getElementById('top-right');
+    const bottomLeft = document.getElementById('bottom-left');
+
+    playerToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (playerCount === 2) {
+            playerCount = 4;
+            playerToggle.textContent = '4P';
+            switchToFourPlayers();
+        } else {
+            playerCount = 2;
+            playerToggle.textContent = '2P';
+            switchToTwoPlayers();
+        }
+    });
+
+    function switchToFourPlayers() {
+        buzzed = false;
+        greenScoreControl.style.display = scoreVisible ? 'flex' : 'none';
+        yellowScoreControl.style.display = scoreVisible ? 'flex' : 'none';
+        document.body.style.gridTemplateColumns = '1fr 1fr';
+        document.body.style.gridTemplateRows = '1fr 1fr';
+        topRight.style.display = 'block';
+        bottomLeft.style.display = 'block';
+        topDiv.style.gridColumn = '1';
+        topDiv.style.gridRow = '1';
+        bottomDiv.style.gridColumn = '2';
+        bottomDiv.style.gridRow = '2';
+        topRight.style.filter = 'brightness(0.6)';
+        bottomLeft.style.filter = 'brightness(0.6)';
+        topDiv.classList.remove('pulsate');
+        bottomDiv.classList.remove('pulsate');
+        topRight.classList.remove('pulsate');
+        bottomLeft.classList.remove('pulsate');
+        addFourPlayerListeners();
+    }
+
+    function switchToTwoPlayers() {
+        buzzed = false;
+        greenScoreControl.style.display = 'none';
+        yellowScoreControl.style.display = 'none';
+        document.body.style.gridTemplateColumns = '1fr';
+        document.body.style.gridTemplateRows = '1fr 1fr';
+        topRight.style.display = 'none';
+        bottomLeft.style.display = 'none';
+        topDiv.style.gridColumn = '1';
+        topDiv.style.gridRow = '1';
+        bottomDiv.style.gridColumn = '1';
+        bottomDiv.style.gridRow = '2';
+        topDiv.classList.remove('pulsate');
+        bottomDiv.classList.remove('pulsate');
+        unlockBuzzers();
+    }
+
+    function addFourPlayerListeners() {
+        topRight.addEventListener('pointerdown', function() {
+            if (buzzed) return;
+            if (!buzzersActive) return;
+            buzzed = true;
+            winnerFour(topRight);
+        });
+
+        bottomLeft.addEventListener('pointerdown', function() {
+            if (buzzed) return;
+            if (!buzzersActive) return;
+            buzzed = true;
+            winnerFour(bottomLeft);
+        });
+    }
+
+    function winnerFour(winnerDiv) {
+        const allDivs = [topDiv, bottomDiv, topRight, bottomLeft];
+        allDivs.forEach(function(div) {
+            if (div === winnerDiv) {
+                div.classList.add('pulsate');
+            } else {
+                div.style.filter = 'brightness(0)';
+            }
+        });
+        bling();
+        setTimeout(function() {
+            resetBtn.style.display = 'block';
+        }, 3000);
+    }
+
     // Score counters
     const blueScore = document.getElementById('blue-score');
     const redScore = document.getElementById('red-score');
@@ -429,10 +584,16 @@
             scoreToggle.textContent = 'Score: ON';
             blueScoreControl.style.display = 'flex';
             redScoreControl.style.display = 'flex';
+            if (playerCount === 4) {
+                greenScoreControl.style.display = 'flex';
+                yellowScoreControl.style.display = 'flex';
+            }
         } else {
             scoreToggle.textContent = 'Score: OFF';
             blueScoreControl.style.display = 'none';
             redScoreControl.style.display = 'none';
+            greenScoreControl.style.display = 'none';
+            yellowScoreControl.style.display = 'none';
         }
     });
 
@@ -458,6 +619,38 @@
         e.stopPropagation();
         redPoints++;
         redScore.textContent = redPoints;
+    });
+
+    const greenScore = document.getElementById('green-score');
+    const yellowScore = document.getElementById('yellow-score');
+    const greenScoreControl = document.getElementById('green-score-control');
+    const yellowScoreControl = document.getElementById('yellow-score-control');
+
+    let greenPoints = 0;
+    let yellowPoints = 0;
+
+    document.getElementById('green-plus').addEventListener('click', function(e) {
+        e.stopPropagation();
+        greenPoints++;
+        greenScore.textContent = greenPoints;
+    });
+
+    document.getElementById('green-minus').addEventListener('click', function(e) {
+        e.stopPropagation();
+        greenPoints--;
+        greenScore.textContent = greenPoints;
+    });
+
+    document.getElementById('yellow-plus').addEventListener('click', function(e) {
+        e.stopPropagation();
+        yellowPoints++;
+        yellowScore.textContent = yellowPoints;
+    });
+
+    document.getElementById('yellow-minus').addEventListener('click', function(e) {
+        e.stopPropagation();
+        yellowPoints--;
+        yellowScore.textContent = yellowPoints;
     });
 
     // Settings screen
@@ -585,20 +778,26 @@
 
     topDiv.addEventListener('pointerdown', function() {
         if (mode === 'chess') return;
-        if (buzzed || !buzzersActive) return;
-        console.log('topBuzzed event start, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+        if (buzzed) return;
+        if (!buzzersActive) return;
         buzzed = true;
-        winner(topDiv, bottomDiv);
-        console.log('topBuzzed event end, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+        if (playerCount === 4) {
+            winnerFour(topDiv);
+        } else {
+            winner(topDiv, bottomDiv);
+        }
     });
 
     bottomDiv.addEventListener('pointerdown', function() {
         if (mode === 'chess') return;
-        if (buzzed || !buzzersActive) return;
-        console.log('bottomBuzzed event start, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+        if (buzzed) return;
+        if (!buzzersActive) return;
         buzzed = true;
-        winner(bottomDiv, topDiv);
-        console.log('bottomBuzzed end, host mode: ', hostMode, 'buzzed:', buzzed, 'buzzersActive:', buzzersActive);
+        if (playerCount === 4) {
+            winnerFour(bottomDiv);
+        } else {
+            winner(bottomDiv, topDiv);
+        }
     });
 
     // resetBtn.addEventListener('click', function(e) {
@@ -635,6 +834,8 @@
             resetBtn.style.display = 'none';
             topDiv.classList.remove('pulsate');
             bottomDiv.classList.remove('pulsate');
+            topRight.classList.remove('pulsate');
+            bottomLeft.classList.remove('pulsate');
             if (hostMode) {
                 lockBuzzers();
             } else {
@@ -747,6 +948,8 @@
         activateBtn.style.display = 'block';
         topDiv.style.filter = 'brightness(0.3)';
         bottomDiv.style.filter = 'brightness(0.3)';
+        topRight.style.filter = 'brightness(0.3)';
+        bottomLeft.style.filter = 'brightness(0.3)';
     }
 
     function unlockBuzzers() {
@@ -754,8 +957,12 @@
         buzzersActive = true;
         topDiv.style.filter = 'brightness(0.6)';
         bottomDiv.style.filter = 'brightness(0.6)';
+        topRight.style.filter = 'brightness(0.6)';
+        bottomLeft.style.filter = 'brightness(0.6)';
         topDiv.classList.remove('pulsate');
         bottomDiv.classList.remove('pulsate');
+        topRight.classList.remove('pulsate');
+        bottomLeft.classList.remove('pulsate');
     }
 
     function bling() {
